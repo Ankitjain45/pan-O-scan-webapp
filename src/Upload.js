@@ -21,7 +21,7 @@ class Upload extends Component {
             pan_number: "",
             Error: null,
             warnings: null,
-            msg:null,
+            success:null,
       }
 
     this.handleChane= this.handleChane.bind(this);
@@ -40,47 +40,9 @@ class Upload extends Component {
 
     }
 
-    async handleSubmit(event){
-        event.preventDefault();
-        // this.setState({confirmation : "Uploading..."});
-        // const formData={
-        //     name:this.state.your_name,
-        //     fatherName:this.state.father_name,
-        //     dateOfBirth:this.date_of_birth,
-        //     panNumber:this.state.pan_number
-        // }
-        // await fetch('',{
-        //     method:"POST",
-        //     headers:{
-        //         Accept: "application/json",
-        //         "Content-Type":"application.json"
-        //     },
-        //     body: JSON.stringify(formData)
-        // })
-        // .then((res)=>{
-        //     if(res.statusCode===200){
-        //         this.setState({
-        //             msg:res.message,
-        //             your_name:"",
-        //             father_name:"",
-        //             date_of_birth:"",
-        //             pan_number:"",
-        //             confirmation:""
-        //         })
-        //     }
-        // })
-        this.setState({
-            your_name:"",
-            father_name:"",
-            date_of_birth:"",
-            pan_number:"",
-            confirmation:""
-        })
-    }
-
     async getFiles(files){
         this.setState({
-            msg:null,
+            success:null,
             isLoading : "Extracting data",
             files : files
     });
@@ -95,9 +57,10 @@ class Upload extends Component {
         img : this.state.files[0].base64
     };
 
+    
     this.setState({confirmation : "Processing..."})
     await fetch(
-        'https://bje59v8af5.execute-api.ap-northeast-2.amazonaws.com/Production',
+        'https://bje59v8af5.execute-api.ap-northeast-2.amazonaws.com/Production', // upload image to s3
         {
         method: "POST",
         headers: {
@@ -112,7 +75,7 @@ class Upload extends Component {
 
     let targetImage= UID + ".png";
     const response=await fetch(
-        'https://bje59v8af5.execute-api.ap-northeast-2.amazonaws.com/Production/ocr',
+        'https://bje59v8af5.execute-api.ap-northeast-2.amazonaws.com/Production/ocr', // extract data using ocr
         {
         method: "POST",
         headers: {
@@ -138,8 +101,40 @@ class Upload extends Component {
         warnings:OCRBody.warnings,
     })
     }
-    submitForm(){
-        
+
+    // submit form data to database
+    async handleSubmit(event){
+        event.preventDefault();
+        this.setState({confirmation : "Uploading..."});
+        const formData={
+            name:this.state.your_name,
+            fatherName:this.state.father_name,
+            dateOfBirth:this.state.date_of_birth,
+            panNumber:this.state.pan_number
+        }
+        await fetch(
+            'https://bje59v8af5.execute-api.ap-northeast-2.amazonaws.com/Production/submit',
+            {
+            method:"POST",
+            headers:{
+                Accept: "application/json",
+                "Content-Type":"application.json"
+            },
+            body: JSON.stringify(formData)
+        })
+        .then((res)=>{
+            console.log(res.json());
+            if(res.status==200){
+                this.setState({
+                    success:true,
+                    your_name:"",
+                    father_name:"",
+                    date_of_birth:"",
+                    pan_number:"",
+                    confirmation:""
+                })
+            }
+        })
     }
 
     render() { 
@@ -151,9 +146,9 @@ class Upload extends Component {
                <div className="col-6 offset-3">
 
                    {/* display success msg */}
-                    {this.state.msg && (
+                    {this.state.success && (
                         <Alert color="success">
-                        <h1>{this.state.msg}</h1>
+                        <h1>Form submitted successfully</h1>
                         </Alert>
                     )}
 
