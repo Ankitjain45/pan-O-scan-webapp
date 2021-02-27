@@ -24,20 +24,17 @@ class Upload extends Component {
             success:null,
       }
 
-    this.handleChane= this.handleChane.bind(this);
+    this.handleChange= this.handleChange.bind(this);
     this.handleSubmit=this.handleSubmit.bind(this);
     
     }
 
-
-    handleChane(event){
-        event.preventDefault();
+    // handle editing
+    handleChange(event){
         const target = event.target;
         const value=target.value;
         const name=target.name;
-
-        this.setState({name:value});
-
+        this.setState({[name]:value});
     }
 
     async getFiles(files){
@@ -46,6 +43,7 @@ class Upload extends Component {
             isLoading : "Extracting data",
             files : files
     });
+    console.log(files);
 
 
     const UID= Math.round(1+ Math.random() * (1000000-1));
@@ -104,7 +102,6 @@ class Upload extends Component {
 
     // submit form data to database
     async handleSubmit(event){
-        event.preventDefault();
         this.setState({confirmation : "Uploading..."});
         const formData={
             name:this.state.your_name,
@@ -124,9 +121,10 @@ class Upload extends Component {
         })
         .then((res)=>{
             console.log(res.json());
-            if(res.status==200){
+            if(res.status===200){
                 this.setState({
                     success:true,
+                    files:"",
                     your_name:"",
                     father_name:"",
                     date_of_birth:"",
@@ -187,11 +185,11 @@ class Upload extends Component {
                             </Label>
                             <Input 
                                 type="text"
-                                name="Name"
+                                name="your_name"
                                 id="name"
                                 required
                                 value={this.state.your_name}
-                                onChange={this.handleChane}
+                                onChange={this.handleChange}
                             />
 
                         </FormGroup>
@@ -203,11 +201,11 @@ class Upload extends Component {
                             </Label>
                             <Input 
                                 type="text"
-                                name="Father's Name"
-                                id="father_name"
+                                name="father_name"
+                                id="fname"
                                 required
                                 value={this.state.father_name}
-                                onChange={this.handleChane}
+                                onChange={this.handleChange}
                             />
                         </FormGroup>
 
@@ -219,11 +217,11 @@ class Upload extends Component {
                             </Label>
                             <Input 
                                 type="text"
-                                name="Date of Birth"
-                                id="date_of_birth"
+                                name="date_of_birth"
+                                id="dob"
                                 required
                                 value={this.state.date_of_birth}
-                                onChange={this.handleChane}
+                                onChange={this.handleChange}
                             />
                         </FormGroup>
 
@@ -234,11 +232,11 @@ class Upload extends Component {
                             </Label>
                             <Input 
                                 type="text"
-                                name="Permanent Account Number"
+                                name="pan_number"
                                 id="pan"
                                 required
                                 value={this.state.pan_number}
-                                onChange={this.handleChane}
+                                onChange={this.handleChange}
                             />
                         </FormGroup>
 
