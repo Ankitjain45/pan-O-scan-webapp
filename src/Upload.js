@@ -3,14 +3,21 @@ import FileBase64 from 'react-file-base64';
 import {Button,Form,FormGroup,Label,FormText,Input,Alert} from "reactstrap";
 
 import "./upload.css";
+var axios = require('axios');
+let image = axios.get("../public/logo192.png", {responseType: 'arraybuffer'});
+let raw = Buffer.from(image.data).toString('base64');
 
+const makeResponsiveClasses={
+    MOBILE:"m-auto align-self-center",
+    DESKTOP:"col-6 offset-3",
+}
 
 class Upload extends Component {
 
     constructor(props){
         super(props);
 
-    
+    console.log(raw);
     this.state = {
             confirmation : "",
             isLoading : "",
@@ -19,18 +26,33 @@ class Upload extends Component {
             father_name: "",
             date_of_birth: "",
             pan_number: "",
-            Error: null,
+            error: null,
             warnings: null,
             success:null,
+            responsiveClass:null,
+
       }
 
     this.handleChange= this.handleChange.bind(this);
     this.handleSubmit=this.handleSubmit.bind(this);
     
     }
+    componentDidMount() {
+        window.addEventListener("resize", this.updateResponsiveClass());
+    }
+    
+    componentWillUnmount() {
+        window.removeEventListener("resize", this.updateResponsiveClass());
+    }
+    
+    updateResponsiveClass() {
+       let screenSize = (window.innerWidth<=760)?makeResponsiveClasses.MOBILE:makeResponsiveClasses.DESKTOP;
+       this.setState({responsiveClass:screenSize});
+    }
 
     // handle editing
     handleChange(event){
+        event.preventDefault();
         const target = event.target;
         const value=target.value;
         const name=target.name;
@@ -40,6 +62,8 @@ class Upload extends Component {
     async getFiles(files){
         this.setState({
             success:null,
+            error:null,
+            warnings:null,
             isLoading : "Extracting data",
             files : files
     });
@@ -85,11 +109,11 @@ class Upload extends Component {
        
     );
     this.setState({confirmation : ""})
-
+    
     const OCRBody = await response.json();
     console.log("OCRBody",OCRBody);
     this.setState({
-        Error:OCRBody.error,
+        error:OCRBody.error,
     })
     this.setState({
         your_name :OCRBody.body[0],
@@ -102,6 +126,7 @@ class Upload extends Component {
 
     // submit form data to database
     async handleSubmit(event){
+        event.preventDefault()
         this.setState({confirmation : "Uploading..."});
         const formData={
             name:this.state.your_name,
@@ -124,6 +149,8 @@ class Upload extends Component {
             if(res.status===200){
                 this.setState({
                     success:true,
+                    warnings:null,
+                    error:null,
                     files:"",
                     your_name:"",
                     father_name:"",
@@ -139,9 +166,9 @@ class Upload extends Component {
         const processing=this.state.confirmation;
         return (
              
-           <div className="row">
+           <div className="row p-4">
                
-               <div className="col-6 offset-3">
+               <div className={this.state.responsiveClass}>
 
                    {/* display success msg */}
                     {this.state.success && (
@@ -166,9 +193,9 @@ class Upload extends Component {
                         </FormGroup> 
 
                         {/* display error (if any) */}
-                        {this.state.Error && (
+                        {this.state.error && (
                             <Alert color="danger">
-                            <h1>{this.state.Error}</h1>
+                            <h1>{this.state.error}</h1>
                             </Alert>
                         )}
                         {/* disply warnings (if any) */}
